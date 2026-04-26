@@ -4,5 +4,8 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index" }
   ],
-  "trailingSlash": false
+  "trailingSlash": false,
+  "analytics": {
+    "enable": true
+  }
 }
