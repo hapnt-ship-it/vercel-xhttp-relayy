@@ -51,6 +51,11 @@ export default async function handler(req) {
     const hasBody = method !== "GET" && method !== "HEAD";
     const body = hasBody ? await req.arrayBuffer() : undefined;
 
+    // DEBUG LOGS
+    console.log("TARGET_BASE:", TARGET_BASE);
+    console.log("Fetching URL:", targetUrl);
+    console.log("Method:", method);
+
     return await fetch(targetUrl, {
       method,
       headers: out,
@@ -60,6 +65,8 @@ export default async function handler(req) {
 
   } catch (err) {
     console.error("relay error:", err);
+    console.error("relay error message:", err.message);
+    console.error("relay error cause:", err.cause);
     return new Response("Bad Gateway: Tunnel Failed", { status: 502 });
   }
 }
