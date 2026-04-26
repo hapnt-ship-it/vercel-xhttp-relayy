@@ -1,25 +1,4 @@
-export const config = { runtime: "edge" };
-
-const TARGET_BASE = (process.env.TARGET_DOMAIN || "").replace(/\/$/, "");
-
-const STRIP_HEADERS = new Set([
-  "host",
-  "connection",
-  "keep-alive",
-  "proxy-authenticate",
-  "proxy-authorization",
-  "te",
-  "trailer",
-  "transfer-encoding",
-  "upgrade",
-  "forwarded",
-  "x-forwarded-host",
-  "x-forwarded-proto",
-  "x-forwarded-port",
-]);
-
-// Landing page HTML with Vercel Analytics
-const LANDING_PAGE = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -183,64 +162,4 @@ const LANDING_PAGE = `<!DOCTYPE html>
     inject();
   </script>
 </body>
-</html>`;
-
-export default async function handler(req) {
-  // Serve landing page for browser requests to root path
-  const url = new URL(req.url);
-  const acceptHeader = req.headers.get("accept") || "";
-  
-  if (url.pathname === "/" && acceptHeader.includes("text/html")) {
-    return new Response(LANDING_PAGE, {
-      status: 200,
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        "cache-control": "public, max-age=3600",
-      },
-    });
-  }
-
-  if (!TARGET_BASE) {
-    return new Response("Misconfigured: TARGET_DOMAIN is not set", { status: 500 });
-  }
-
-  try {
-    const pathStart = req.url.indexOf("/", 8);
-    const targetUrl =
-      pathStart === -1 ? TARGET_BASE + "/" : TARGET_BASE + req.url.slice(pathStart);
-
-    const out = new Headers();
-    let clientIp = null;
-
-    for (const [k, v] of req.headers) {
-      if (STRIP_HEADERS.has(k)) continue;
-      if (k.startsWith("x-vercel-")) continue;
-      if (k === "x-real-ip") {
-        clientIp = v;
-        continue;
-      }
-      if (k === "x-forwarded-for") {
-        if (!clientIp) clientIp = v;
-        continue;
-      }
-      out.set(k, v);
-    }
-
-    if (clientIp) out.set("x-forwarded-for", clientIp);
-
-    const method = req.method;
-    const hasBody = method !== "GET" && method !== "HEAD";
-    const body = hasBody ? await req.arrayBuffer() : undefined;
-
-    return await fetch(targetUrl, {
-      method,
-      headers: out,
-      body,
-      redirect: "manual",
-    });
-
-  } catch (err) {
-    console.error("relay error:", err);
-    return new Response("Bad Gateway: Tunnel Failed", { status: 502 });
-  }
-}
+</html>
