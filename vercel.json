@@ -2,6 +2,8 @@
   "version": 2,
   "name": "vercel-xhttp-relay",
   "rewrites": [
+    { "source": "/status", "destination": "/public/index.html" },
+    { "source": "/_vercel/speed-insights/(.*)", "destination": "/_vercel/speed-insights/$1" },
     { "source": "/(.*)", "destination": "/api/index" }
   ],
   "trailingSlash": false
